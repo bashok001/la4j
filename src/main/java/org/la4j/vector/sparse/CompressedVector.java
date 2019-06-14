@@ -23,6 +23,8 @@
 
 package org.la4j.vector.sparse;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -175,14 +177,15 @@ public class CompressedVector extends SparseVector {
     }
 
     /**
-     * Parses {@link CompressedVector} from the given Matrix Market string.
+     * Parses {@link CompressedVector} from the given Matrix Market.
      *
-     * @param mm the string in Matrix Market format
+     * @param is the input stream in Matrix Market format
      *
      * @return a parsed vector
+     * @exception  IOException  if an I/O error occurs.
      */
-    public static CompressedVector fromMatrixMarket(String mm) {
-        return Vector.fromMatrixMarket(mm).to(Vectors.COMPRESSED);
+    public static CompressedVector fromMatrixMarket(InputStream is) throws IOException {
+        return Vector.fromMatrixMarket(is).to(Vectors.COMPRESSED);
     }
 
     /**
@@ -207,11 +210,12 @@ public class CompressedVector extends SparseVector {
      */
     public static CompressedVector fromMap(Map<Integer, ? extends Number> map, int length) {
         //TODO goto lambdas
-        int cardinality = map.size();
+        TreeMap<Integer, ? extends Number> sortedMap = new TreeMap<>(map);
+        int cardinality = sortedMap.size();
         int[] indices = new int[cardinality];
         double[] values = new double[cardinality];
         int i = 0;
-        for (Map.Entry<Integer, ? extends Number> entry : map.entrySet()) {
+        for (Map.Entry<Integer, ? extends Number> entry : sortedMap.entrySet()) {
             int index = entry.getKey();
             if (index < 0 || index >= length) {
                 throw new IllegalArgumentException("Check your map: Index must be 0..n-1");
